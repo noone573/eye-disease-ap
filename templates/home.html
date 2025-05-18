@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Prediction</title>
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-section">
+      <div class="header-bar">
+        Eye Analyzed
+        <div class="header-buttons">
+          <a href="{% url 'view_history' %}" title="View Prediction History">
+            <img src="{% static 'css/history-icon.png' %}" alt="History" style="width: 30px; height: 30px;">
+          </a>
+        </div>
+      </div>
+
+      <div class="content">
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="file" accept="image/*" id="id_image" name="image" style="display: none;" onchange="previewImage(event)">
+
+          <div class="image-uploader" onclick="document.getElementById('id_image').click();">
+            <div id="imagePreview" class="preview-text">Click or tap to upload the fundus eye image</div>
+          </div>
+
+          <div style="display: flex; justify-content: center; flex-wrap: wrap;">
+            <button type="submit">Upload</button>
+            {% if prediction %}
+              <button type="button" onclick="openModal()">View Detailed Prediction</button>
+            {% endif %}
+          </div>
+        </form>
+
+        {% if prediction %}
+        <div id="resultModal" class="modal">
+          <div class="modal-content-box">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🧠 Eye Disease Analysis</h2>
+            <p><strong>Prediction:</strong> {{ prediction }}</p>
+
+            <div class="image-comparison">
+              <div class="image-box">
+                <h4>Original Image</h4>
+                <img src="{{ image_url }}" alt="Original" />
+              </div>
+              <div class="image-box">
+                <h4>Grad-CAM</h4>
+                {% if gradcam_url %}
+                  <img src="{{ gradcam_url }}" alt="Grad-CAM Result">
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="analysis">
+              <h4>Interpretation:</h4>
+              <p>
+                The uploaded retinal image has been analyzed by the AI model, which predicted 
+                <strong>{{ prediction_class }}</strong> with <strong>{{ confidence }}</strong> confidence.
+              </p>
+
+              {% if prediction_class == "Cataract" %}
+                <h3>Analysis for Cataract:</h3>
+                <p>
+                  Cataract causes clouding of the eye's lens, leading to vision loss. 
+                  Common in aging populations, it may require surgical correction. 
+                  Early diagnosis is crucial to maintain vision.
+                </p>
+              {% elif prediction_class == "Glaucoma" %}
+                <h3>Analysis for Glaucoma:</h3>
+                <p>
+                  Glaucoma affects the optic nerve and may cause irreversible blindness. 
+                  Managing intraocular pressure through medication or surgery is essential.
+                </p>
+              {% elif prediction_class == "Retinopathy" %}
+                <h3>Analysis for Retinopathy:</h3>
+                <p>
+                  Retinopathy, often diabetic in origin, damages the retina’s blood vessels. 
+                  Tight control of blood sugar and regular screenings help manage it effectively.
+                </p>
+              {% elif prediction_class == "Not an eye" %}
+                <p>The uploaded image does not appear to be a valid eye image. Please upload a proper retina scan.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function previewImage(event) {
+      const file = event.target.files[0];
+      const preview = document.getElementById('imagePreview');
+      const uploader = document.querySelector('.image-uploader');
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.innerHTML = `<img src="${e.target.result}" style="max-width: 100%; max-height: 300px;">`;
+        };
+        reader.readAsDataURL(file);
+        uploader.classList.add('file-selected');
+      } else {
+        preview.innerHTML = "Click or tap to upload an image";
+        uploader.classList.remove('file-selected');
+      }
+    }
+
+    function openModal() {
+      document.getElementById("resultModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("resultModal").style.display = "none";
+    }
+
+    window.onload = function () {
+      const predictionExists = {{ prediction|yesno:"true,false" }};
+      if (predictionExists) {
+        openModal();
+      }
+
+      window.onclick = function (event) {
+        const modal1 = document.getElementById("resultModal");
+        if (event.target == modal1) {
+          closeModal();
+        }
+      };
+    };
+  </script>
+</body>
+</html>

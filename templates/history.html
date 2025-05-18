@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prediction History</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f2f2f2;
+      color: #333;
+    }
+
+    .wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .main-section {
+      max-width: 1000px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: white;
+    }
+
+    .header-bar {
+      background: linear-gradient(to right, #88039f, #c64bff);
+      color: white;
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-buttons a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .table-wrapper {
+      width: 100%;
+      overflow-y: auto;
+      max-height: 500px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background-color: rgb(255, 255, 255);
+      color: black;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid #ccc;
+      z-index: 1;
+    }
+
+    tbody td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    img {
+      width: 80px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .btn-danger {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background-color: #8000ff;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background-color: #5e00c6;
+    }
+
+    @media (max-width: 600px) {
+      .header-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-section">
+
+      <!-- Header bar -->
+      <div class="header-bar">
+        <div class="header-row">
+          <div class="header-buttons">
+            <a href="{% url 'prediction' %}">&#8592; Back</a>
+          </div>
+          <div>Prediction History</div>
+          <div style="width: 40px;"></div>
+        </div>
+      </div>
+
+      <!-- Unified scrollable table -->
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Grad-CAM</th>
+              <th>Result</th>
+              <th>Timestamp</th>
+              {% if user.is_superuser %}
+              <th>Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in history %}
+            <tr>
+              <td><img src="{{ item.image.url }}" alt="Eye Image" /></td>
+              <td>
+                {% if item.gradcam %}
+                  <img src="{{ item.gradcam.url }}" alt="Grad-CAM" />
+                {% else %}
+                  No Grad-CAM
+                {% endif %}
+              </td>
+              <td>{{ item.result }}</td>
+              <td>{{ item.timestamp }}</td>
+              {% if user.is_superuser %}
+              <td>
+                <form action="{% url 'delete_prediction' item.id %}" method="POST" style="display:inline;">
+                  {% csrf_token %}
+                  <button class="btn-danger" onclick="return confirm('Delete this record?')">Delete</button>
+                </form>
+              </td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="{% if user.is_superuser %}5{% else %}4{% endif %}">No records found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
