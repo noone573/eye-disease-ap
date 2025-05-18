@@ -17,6 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 model_path = os.path.join(BASE_DIR, 'ml_models', 'vgg16_model.h5')
 model = load_model(model_path)
 
+
 class_names = ['Cataract', 'Retinopathy', 'Glaucoma', 'Normal']
 
 def predict_image(img_path, threshold=0.60):
