@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-*4vlb^=7urg)mt#x4zkd5su#hk&m(@et#5_5jr=wy5x^8j8i1z"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://eye-disease-detector.onrender.com']
 
 
 # Application definition
